@@ -1,0 +1,4 @@
+V : A, B
+T : a, b
+P : A -> a | Ab , B -> b
+S : A
