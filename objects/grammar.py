@@ -9,7 +9,7 @@ class ContextFreeGrammar:
     S: str
 
     @classmethod
-    def from_file(cls, filename: str):
+    def from_file(cls, filename: str) -> "ContextFreeGrammar":
         sets: dict = dict()
         with open(filename, "r") as file:
             lines = file.readlines()
