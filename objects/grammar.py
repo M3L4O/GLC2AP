@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from exceptions import ValueNotExists
+
 
 @dataclass
 class ContextFreeGrammar:
@@ -10,7 +12,7 @@ class ContextFreeGrammar:
 
     @classmethod
     def from_file(cls, filename: str) -> "ContextFreeGrammar":
-        sets: dict = dict()
+        component: dict = dict()
         with open(filename, "r") as file:
             lines = file.readlines()
             for line in lines:
@@ -33,18 +35,15 @@ class ContextFreeGrammar:
                                     left = left.split("|")
                                 P[right] = left
 
-                            sets[key] = P
+                            component[key] = P
                         case "S":
-                            sets[key] = values[0]
+                            component[key] = values[0]
                         case _:
-                            sets[key] = set(sorted(values))
+                            component[key] = set(sorted(values))
 
-        return ContextFreeGrammar(sets["V"], sets["T"], sets["P"], sets["S"])
+        return ContextFreeGrammar(
+            component["V"], component["T"], component["P"], component["S"]
+        )
 
     def __str__(self):
         return str((self.V, self.Σ, self.R, self.S))
-
-
-class ValueNotExists(Exception):
-    def __init__(self):
-        super(ValueNotExists, self).__init__("Valor não existente na em gramáticas.")
