@@ -1,16 +1,14 @@
 from dataclasses import dataclass, field
-
-from grammar import ContextFreeGrammar
-
-from exceptions import ValueNotExists
+from .grammar import ContextFreeGrammar
+from .exceptions import ValueNotExists
 
 
 @dataclass
 class StackAutomaton:
     Σ: set
     Q: set
-    δ: set
-    q: set
+    δ: dict
+    q: str
     F: set
     V: set
     stack: list[str] = field(default_factory=lambda: [])
@@ -20,7 +18,18 @@ class StackAutomaton:
 
     @classmethod
     def from_grammar(cls, grammar: ContextFreeGrammar) -> "StackAutomaton":
-        pass
+        Σ = grammar.Σ
+        Q = {"q0", "q1", "q2"}
+        F = {"q2"}
+        V = grammar.V
+        δ = dict()
+        δ[("q0", "ε", "ε")] = ("q1", grammar.S)
+
+        for key, values in grammar.R.items():
+            for value in values:
+                δ[("q1", "ε", key)] = ("q1", value)
+
+        return StackAutomaton(Σ, Q, δ, "q0", F, V)
 
     @classmethod
     def from_file(cls, filename: str) -> "StackAutomaton":
@@ -39,19 +48,16 @@ class StackAutomaton:
                         case "q":
                             component[key] = values
                         case "P":
+                            component[key] = dict()
                             productions: list[str] = values.split(";")
                             for production in productions:
                                 left: str | list[str]
                                 right: str | list[str]
                                 left, right = production.split("->")
                                 left, right = left.split(","), right.split(",")
-                                component[key] = dict()
-                                component[key][left[0]] = dict()
-                                component[key][left[0]][left[1]] = dict()
-                                component[key][left[0]][left[1]][left[2]] = right
+                                component[key][tuple(left)] = tuple(right)
                         case _:
                             component[key] = set(values.split(","))
-
         return StackAutomaton(
             component["T"],
             component["Q"],
@@ -61,18 +67,15 @@ class StackAutomaton:
             component["V"],
         )
 
-    def step(self, state: str, char: str) -> str:
-        try:
-            new_state, top_stack = self.δ[state][char][self.stack.pop()]
-        except IndexError:
-            new_state = self.δ[state][char]
+    def step(self, state: str, word: str, recognition_process: list = []) -> str:
+        transitions = [
+            transition for transition in self.δ.keys() if state in transition
+        ]
+        char, word = [*word][0], "".join([*word][1:])
 
-        self.stack.insert(0, top_stack)
-        print(f"δ({state}, {char} ,{self.stack[0]}) -> ({new_state}, {top_stack})")
-
-        return new_state
+        for transition in transitions:
+            pass
 
     def recognition(self, word: str) -> bool:
         state = self.q
-        for char in word:
-            state = self.step(state, char)
+        self.step(state, word)

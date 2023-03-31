@@ -1,6 +1,6 @@
 T : a, b, c
 Q : q0, q1, q2
-P : q0, a, ε -> q1, A; q1, b, A -> q2, ε
+P : q0, ε, ε -> q1, A; q1, b, A -> q2, ε; q2, c, ε -> q2, ε  
 q : q0
 F : q2
 V : A
